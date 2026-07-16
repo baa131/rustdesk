@@ -257,7 +257,15 @@ jobs:
           # --hwcodec is shared by all Windows targets; per-target extras (e.g. --vram) come from the matrix
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec ${{ matrix.job.build-args }}
           mv ./flutter/build/windows/${{ matrix.job.flutter-arch }}/runner/Release ./rustdesk
-
+          
+          # 生成 Runner.res
+          pushd ./libs/portable
+          pip3 install -r requirements.txt
+          python3 ./generate.py -f ./ -o . -e ./target/release/rustdesk.exe
+          popd
+          # 将生成的 Runner.res 复制到目标位置
+          cp ./libs/portable/Runner.res ./rustdesk/ || echo "Runner.res not generated"
+          
           # Download usbmmidd_v2.zip and extract it to ./rustdesk
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
           Expand-Archive usbmmidd_v2.zip -DestinationPath .
